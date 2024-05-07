@@ -1,28 +1,24 @@
 from fastapi import FastAPI, HTTPException
 from pdfminer.high_level import extract_text
 from docx import Document
-import aiohttp
+import httpx
 import tiktoken
 import os
 import csv
 
-import csv
-from docx import Document
-import os
-
 app = FastAPI()
 
 async def download_file(url: str, path: str):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                data = await response.read()
-                with open(path, 'wb') as f:
-                    f.write(data)
-                if not os.path.exists(path) or os.path.getsize(path) == 0:
-                    raise HTTPException(status_code=400, detail="Erro ao salvar o arquivo.")
-            else:
-                raise HTTPException(status_code=response.status, detail="Erro ao baixar o arquivo.")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        if response.status_code == 200:
+            data = await response.aread()  # Use aread() para ler os dados de maneira assíncrona
+            with open(path, 'wb') as f:
+                f.write(data)
+            if not os.path.exists(path) or os.path.getsize(path) == 0:
+                raise HTTPException(status_code=400, detail="Erro ao salvar o arquivo.")
+        else:
+            raise HTTPException(status_code=response.status_code, detail="Erro ao baixar o arquivo.")
 
 def read_pdf_to_string(filepath: str) -> str:
     text = extract_text(filepath)
@@ -36,7 +32,7 @@ def extract_text_from_docx(filepath: str) -> str:
             full_text.append(paragraph.text)
         return '\n'.join(full_text)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao ler arquivo DOCX: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao ler arquivo DOCX: {str(e)}")
 
 def extract_text_from_csv(filepath: str, column_index: int) -> str:
     text = ""
@@ -85,7 +81,7 @@ async def count_tokens(url: str, encoding_name: str = "cl100k_base"):
         else:
             raise HTTPException(status_code=400, detail="Formato de arquivo não suportado.")
     finally:
-        os.remove(file_path)  # Remove o arquivo temporário independentemente de sucesso ou falha na leitura
+        os.remove(file_path)  # Remove o arquivo temporário independentemente de sucesso ou falha na leitura
     
     tokens = num_tokens_from_string(text, encoding_name)
-    return {"Número de tokens": tokens}
+    return {"Número de tokens":tokens}
