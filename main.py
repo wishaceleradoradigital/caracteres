@@ -57,17 +57,6 @@ def num_tokens_from_string(string: str, encoding_name: str) -> int:
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
-"""
-.\\venv\\Scripts\\Activate
-uvicorn tokenizer:app --reload
-
-https://f53c2db1b7b12fb32667132d3363a273.cdn.bubble.io/f1712668817821x409023106233958850/Suportify.pdf
-https://f53c2db1b7b12fb32667132d3363a273.cdn.bubble.io/f1712239923795x587794420769112300/fgje.txt
-https://f53c2db1b7b12fb32667132d3363a273.cdn.bubble.io/f1712669217892x117939970445544830/Planilha%20sem%20t%C3%ADtulo%20-%20P%C3%A1gina1.csv
-https://f53c2db1b7b12fb32667132d3363a273.cdn.bubble.io/f1712668807402x709364676633820000/Documento%2013.docx
-
-"""
-
 @app.get("/count-tokens/")
 async def count_tokens(url: str, encoding_name: str = "cl100k_base"):
     file_path = "tempfile"
